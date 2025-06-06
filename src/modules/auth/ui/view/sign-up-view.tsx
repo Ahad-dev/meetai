@@ -20,6 +20,7 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { FaGithub, FaGoogle } from "react-icons/fa6";
 
 const formSchema = z.object({
   email:z.string().email(),
@@ -69,6 +70,28 @@ const SignUpView = () => {
       }
     }
   )}
+
+  
+  const onSocial = async (provider:"google"|"github") => {
+    setError(null);
+    setPending(true);
+
+    await authClient.signIn.social({
+      provider,
+      callbackURL:"/"
+    },
+      {
+        onSuccess: () => {
+          setPending(false);
+        },
+        onError: ({ error }) => {
+          setPending(false);
+          setError(error.message);
+        },
+      }
+    );
+  };
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -172,19 +195,16 @@ const SignUpView = () => {
                   <span className="bg-card text-muted-foreground relative z-10 px-2">Or continue with</span>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Button
-                    variant={"outline"}
-                    type="button"
-                    className="w-full"
-                  >
-                    Google
+                  <Button onClick={()=>onSocial("google")} variant={"outline"} type="button" className="w-full">
+                    <FaGoogle/>
                   </Button>
                   <Button
+                    onClick={() => onSocial("github")}
                     variant={"outline"}
                     type="button"
                     className="w-full"
                   >
-                    GitHub
+                    <FaGithub/>
                   </Button>
                 </div>
                 <div className="text-center text-sm">
