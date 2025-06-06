@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { FaGithub, FaGoogle } from "react-icons/fa6";
 import {
   Form,
   FormField,
@@ -19,45 +20,66 @@ import { Loader, Loader2, OctagonAlertIcon } from "lucide-react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  email:z.string().email(),
-  password:z.string().min(1,{message:"Password is Required"}),
+  email: z.string().email(),
+  password: z.string().min(1, { message: "Password is Required" }),
 });
 
 const SignInView = () => {
-
-  const router = useRouter();
-  const [error,setError] = useState<string|null>(null)
-  const [pending,setPending] = useState<Boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<Boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver:zodResolver(formSchema),
-    defaultValues:{
-      email:"",
-      password:""
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
     },
-  })
+  });
 
-  const onSubmit = async(data: z.infer<typeof formSchema>)=>{
-    setError(null)
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setError(null);
     setPending(true);
 
-    await authClient.signIn.email({
-      email:data.email,
-      password:data.password
-    },
-    {
-      onSuccess:()=>{
-        router.push("/");
+    await authClient.signIn.email(
+      {
+        email: data.email,
+        password: data.password,
+        callbackURL: "/",
       },
-      onError:({error})=>{
-        setPending(false);
-        setError(error.message)
+      {
+        onSuccess: () => {          
+          setPending(false);
+
+        },
+        onError: ({ error }) => {
+          setPending(false);
+          setError(error.message);
+        },
       }
-    }
-  )}
+    );
+  };
+
+  const onSocial = async (provider:"google"|"github") => {
+    setError(null);
+    setPending(true);
+
+    await authClient.signIn.social({
+      provider,
+      callbackURL:"/"
+    },
+      {
+        onSuccess: () => {
+          setPending(false);
+        },
+        onError: ({ error }) => {
+          setPending(false);
+          setError(error.message);
+        },
+      }
+    );
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,9 +89,7 @@ const SignInView = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8">
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col items-center text-center">
-                  <h1 className="text-2xl font-bold">
-                    Welcome back
-                  </h1>
+                  <h1 className="text-2xl font-bold">Welcome back</h1>
                   <p className="text-muted-foreground text-balance">
                     Login to your account
                   </p>
@@ -78,7 +98,7 @@ const SignInView = () => {
                   <FormField
                     control={form.control}
                     name="email"
-                    render={({field})=>(
+                    render={({ field }) => (
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
@@ -88,14 +108,14 @@ const SignInView = () => {
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage/>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
                     name="password"
-                    render={({field})=>(
+                    render={({ field }) => (
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
@@ -105,46 +125,50 @@ const SignInView = () => {
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage/>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
                 {!!error && (
                   <Alert className="bg-destructive/10 border-none">
-                    <OctagonAlertIcon className="h-4 w-4 !text-destructive"/>
+                    <OctagonAlertIcon className="h-4 w-4 !text-destructive" />
                     <AlertTitle>{error}</AlertTitle>
                   </Alert>
                 )}
-                <Button
-                  type="submit"
-                  className="w-full "
-                  disabled = {!!pending}
-                >
-                  {!pending? "Sign In": <Loader2 className="h-4 w-4 animate-spin" size={10}/>}
+                <Button type="submit" className="w-full " disabled={!!pending}>
+                  {!pending ? (
+                    "Sign In"
+                  ) : (
+                    <Loader2 className="h-4 w-4 animate-spin" size={10} />
+                  )}
                 </Button>
                 <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:item-center after:border-t">
-                  <span className="bg-card text-muted-foreground relative z-10 px-2">Or continue with</span>
+                  <span className="bg-card text-muted-foreground relative z-10 px-2">
+                    Or continue with
+                  </span>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Button
-                    variant={"outline"}
-                    type="button"
-                    className="w-full"
-                  >
-                    Google
+                  <Button onClick={()=>onSocial("google")} variant={"outline"} type="button" className="w-full">
+                    <FaGoogle/>
                   </Button>
                   <Button
+                    onClick={() => onSocial("github")}
                     variant={"outline"}
                     type="button"
                     className="w-full"
                   >
-                    GitHub
+                    <FaGithub/>
                   </Button>
                 </div>
                 <div className="text-center text-sm">
                   Don&apos;t have an account?{" "}
-                  <Link className="underline underline-offset-4 font-semibold" href={"/sign-up"}>Sign Up</Link>
+                  <Link
+                    className="underline underline-offset-4 font-semibold"
+                    href={"/sign-up"}
+                  >
+                    Sign Up
+                  </Link>
                 </div>
               </div>
             </form>
@@ -159,7 +183,8 @@ const SignInView = () => {
         </CardContent>
       </Card>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-                By clicking continue, you agree to out <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+        By clicking continue, you agree to out <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>
       </div>
     </div>
   );
