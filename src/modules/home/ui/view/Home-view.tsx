@@ -23,7 +23,6 @@ const HomeView = () => {
     )
   }
 
-
   if(session){
     return (
       <div className="flex flex-col gap-4 mt-5 mx-4">
