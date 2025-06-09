@@ -43,7 +43,7 @@ const DashboardSidebar = () => {
     const pathname = usePathname()
 
   return (
-    <Sidebar>
+    <Sidebar variant="sidebar">
       <SidebarHeader className="text-sidebar-accent-foreground">
         <Link href={"/"} className="flex item-center gap-2 px-2 pt-2">
           <Image src="/logo.svg" height={36} width={36} alt="Logo" />
