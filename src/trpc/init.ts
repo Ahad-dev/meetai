@@ -3,34 +3,43 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { headers } from 'next/headers';
 import { cache } from 'react';
 export const createTRPCContext = cache(async () => {
-  /**
-   * @see: https://trpc.io/docs/server/context
-   */
-  return { userId: 'user_123' };
+   let session = null;
+
+  try {
+    const requestHeaders = await headers(); // throws if no request
+    session = await auth.api.getSession({
+      headers: requestHeaders,
+    });
+  } catch {
+    // Running in static context like generateStaticParams
+    session = null;
+  }
+
+  return {
+    auth: session,
+  };
 });
 // Avoid exporting the entire t-object
 // since it's not very descriptive.
 // For instance, the use of a t variable
 // is common in i18n libraries.
-const t = initTRPC.create({
-  /**
-   * @see https://trpc.io/docs/server/data-transformers
-   */
-  // transformer: superjson,
-});
-// Base router and procedure helpers
+const t = initTRPC.context<typeof createTRPCContext>().create();
+
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure;
-export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
-  const session = await auth.api.getSession({
-    headers:await headers(),
-  });
-  if(!session){
+export const protectedProcedure = baseProcedure.use(({ ctx, next }) => {
+  if (!ctx.auth) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'You must be logged in to access this resource.',
     });
   }
-  return next({ ctx: {...ctx, auth:session} });
-})
+
+  return next({
+    ctx:{
+      ...ctx,
+      auth: ctx.auth, // ✅ no need to reattach session — already in ctx
+    } 
+  });
+});
