@@ -15,8 +15,8 @@ const NewMeetingDialog = ({
   const router = useRouter()
   return (
     <ResponsiveDialog 
-        title='New Agent'
-        description='Create a new agent'
+        title='New Meeting'
+        description='Create a new meeting'
         open={open}
         onOpenChange={onOpenChange}
     >

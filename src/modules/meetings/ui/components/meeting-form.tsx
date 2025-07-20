@@ -134,7 +134,7 @@ const MeetingForm = (
           control={form.control}
           render={({field})=>(
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Agents</FormLabel>
               <FormControl>
                 <CommandSelect
                   options={(agents.data?.items??[]).map(agent=>(

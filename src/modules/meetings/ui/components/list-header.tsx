@@ -20,7 +20,7 @@ const ListHeader = () => {
           onClick={()=>setIsDialogOpen(true)}
         >
           <PlusIcon></PlusIcon>
-           New Agent</Button>
+           New Meeting</Button>
       </div>
       <div className='flex items-center gap-x-2 p-1'>
 
