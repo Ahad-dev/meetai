@@ -1,6 +1,5 @@
 import {
   createTRPCRouter,
-  baseProcedure,
   protectedProcedure,
 } from "@/trpc/init";
 import { agents, meetings } from "@/db/schema";
@@ -9,8 +8,45 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { and, count, desc, eq, getTableColumns, ilike, sql } from "drizzle-orm";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "@/constants";
+import { meetingInsertSchema, meetingsUpdateSchema } from "../schemas";
 
 export const meetingRouter = createTRPCRouter({
+  update: protectedProcedure
+        .input(meetingsUpdateSchema)
+        .mutation(async({input,ctx})=>{
+          const [updatedMeeting] = await db
+          .update(meetings)
+          .set(input)
+          .where(
+            and(
+              eq(agents.id,input.id),
+              eq(agents.userId,ctx.auth.user.id)
+            )
+          )
+          .returning()
+          if(!updatedMeeting){
+            throw new TRPCError({
+              code:"NOT_FOUND",
+              message:"Meeting Not Found "
+            })
+          }
+        })
+      ,
+  create: protectedProcedure
+    .input(meetingInsertSchema)
+    .mutation(async ({ input, ctx }) => {
+      const [createdMeeting] = await db
+        .insert(meetings)
+        .values({
+          ...input,
+          userId: ctx.auth.user.id,
+        })
+        .returning();
+
+        // TODO: create Stream call Upsert Steram Users
+
+      return createdMeeting;
+    }),
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input,ctx }) => {

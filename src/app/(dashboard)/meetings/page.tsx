@@ -1,3 +1,4 @@
+import ListHeader from '@/modules/meetings/ui/components/list-header'
 import MeetingsView, { MeetingViewError, MeetingViewLoading } from '@/modules/meetings/ui/views/meetings-view'
 import { getQueryClient, trpc } from '@/trpc/server'
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query'
@@ -10,13 +11,16 @@ const Page = async () => {
         trpc.meetings.getMany.queryOptions({})
     )
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-        <Suspense fallback={<MeetingViewLoading/>}>
-            <ErrorBoundary fallback={<MeetingViewError/>}>
-                <MeetingsView/>
-            </ErrorBoundary>
-        </Suspense>
-    </HydrationBoundary>
+    <>  
+        <ListHeader/>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <Suspense fallback={<MeetingViewLoading/>}>
+                <ErrorBoundary fallback={<MeetingViewError/>}>
+                    <MeetingsView/>
+                </ErrorBoundary>
+            </Suspense>
+        </HydrationBoundary>
+    </>
   )
 }
 
