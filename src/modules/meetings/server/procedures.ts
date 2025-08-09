@@ -11,6 +11,7 @@ import {
   MIN_PAGE_SIZE,
 } from "@/constants";
 import { meetingInsertSchema, meetingsUpdateSchema } from "../schemas";
+import { MeetingStatus } from "../types";
 
 export const meetingRouter = createTRPCRouter({
   update: protectedProcedure
@@ -70,14 +71,29 @@ export const meetingRouter = createTRPCRouter({
           .max(MAX_PAGE_SIZE)
           .default(DEFAULT_PAGE_SIZE),
         search: z.string().nullish(),
+        agentId:z.string().nullish(),
+        status:z
+        .enum([
+          MeetingStatus.Upcoming,
+          MeetingStatus.Active,
+          MeetingStatus.Cancelled,
+          MeetingStatus.Completed,
+          MeetingStatus.Processing,
+        ]).nullish()
       })
     )
     .query(async ({ ctx, input }) => {
-      const { search, page, pageSize } = input;
+      const { search, page, pageSize,status,agentId } = input;
 
       const conditions = [eq(meetings.userId, ctx.auth.user.id)];
       if (search) {
         conditions.push(ilike(meetings.name, `%${search}%`));
+      }
+      if(status){
+        conditions.push(eq(meetings.status,status))
+      }
+      if(agentId){
+        conditions.push(eq(meetings.agentId,agentId))
       }
 
       const data = await db
