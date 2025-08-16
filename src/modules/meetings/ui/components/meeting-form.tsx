@@ -75,9 +75,13 @@ const MeetingForm = (
       onSuccess : async(data)=>{
         await queryClient.invalidateQueries(
           trpc.meetings.getMany.queryOptions({}),
-        )
+        );
         
-
+        if(initialValues?.id){
+          await queryClient.invalidateQueries(
+            trpc.meetings.getOne.queryOptions({id:initialValues.id})
+          )
+        }
         //TODO:Free Tier
         onSuccess?.();
       },
