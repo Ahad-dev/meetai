@@ -38,7 +38,7 @@ const MeetingIdViewHeader = ({
         <BreadcrumbList>
         <BreadcrumbItem>
             <BreadcrumbLink asChild className="font-medium text-xl">
-                <Link href={`/agents`}>
+                <Link href={`/meetings`}>
                     My Meetings
                 </Link>
             </BreadcrumbLink>
